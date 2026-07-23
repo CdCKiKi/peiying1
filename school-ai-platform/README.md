@@ -7,7 +7,7 @@
 ```
 school-ai-platform/
 ├─ apps/
-│  ├─ web/                  # Next.js 前端 (TypeScript + Tailwind CSS)
+│  ├─ web/                  # Next.js 前端 (Next.js 16 + React 19 + TypeScript + Tailwind CSS)
 │  └─ api/                  # FastAPI 后端 (Python)
 ├─ workers/
 │  ├─ ocr_worker/           # OCR Worker (mock)
@@ -23,18 +23,34 @@ school-ai-platform/
 
 ## 快速启动
 
-### 前端
+### 前端（apps/web）
+
+这是一个使用 Next.js 16 + React 19 + TypeScript + Tailwind CSS 的应用。项目中已经包含了常用的 npm 脚本：
+
+- `npm run dev` — 本地开发（next dev）
+- `npm run build` — 生产构建（next build）
+- `npm run start` — 生产启动（next start）
+- `npm run lint` — 运行 ESLint
+
+建议在仓库根目录或 `school-ai-platform` 下运行下面命令进入前端目录：
 
 ```bash
 cd apps/web
 npm install
 npm run dev
-# 访问 http://localhost:3000
+# 或者使用 yarn / pnpm / bun：
+# yarn dev
+# pnpm dev
+# bun dev
 ```
+
+默认开发服务器监听 http://localhost:3000。要开始编辑页面，可修改 `app/page.tsx`（使用 App Router），保存后浏览器会热重载。
 
 测试帐号：tommy / tommy123 或 admin / admin123
 
-### 后端
+备注：前端 package.json 指定了 Next.js 16、React 19、tailwindcss v4 等依赖；若在本地遇到问题，请确保 Node 版本与 Next.js 16 的兼容性（常见使用 Node 18+）。
+
+### 后端（apps/api）
 
 ```bash
 cd apps/api
@@ -43,7 +59,7 @@ PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 # 访问 http://localhost:8000/docs 查看 API 文档
 ```
 
-开发模式使用 SQLite，无需 Docker。
+开发模式使用 SQLite，无需 Docker。生产环境可通过环境变量切换到 PostgreSQL。
 
 ### 生产环境
 
@@ -53,7 +69,7 @@ PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/school_ai
 ```
 
-启动 Docker：
+启动 Docker Compose（infra 目录）：
 
 ```bash
 cd infra
@@ -89,15 +105,16 @@ docker compose up -d
 
 | 层 | 技术 |
 |---|---|
-| 前端 | Next.js 16 + TypeScript + Tailwind CSS + App Router |
+| 前端 | Next.js 16 + React 19 + TypeScript + Tailwind CSS  + App Router |
 | 后端 | FastAPI + SQLAlchemy 2 + Pydantic |
 | 数据库 | PostgreSQL (生产) / SQLite (开发) |
 | 异步任务 | Celery + Redis |
 | AI/OCR | Mock (后续接入真实 OCR/LLM) |
 
-## 设计原则
+## 开发提示
 
-- AI 结果必须人工确认后入库
-- Tommy 登录后只看到自己的子系统
-- 首屏信息量控制，辅助功能放入弹窗
-- 对标 `前端页面参考.html` 的 UI 风格
+- 前端目录 `apps/web` 包含一个标准的 Next.js 应用；常见的编辑入口为 `app/` 下的路由文件（App Router）。
+- 若要部署前端到 Vercel，可直接连接仓库并使用默认构建命令（`npm run build` / `npm run start`）。
+- AI 处理结果必须人工确认后入库；界面和后端都遵循这一设计原则。
+- Tommy 登录后只看到自己的子系统；首屏信息量控制，辅助功能放入弹窗。
+
