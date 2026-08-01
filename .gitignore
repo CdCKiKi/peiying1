@@ -1,0 +1,44 @@
+# 环境变量 - 包含敏感密钥
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+venv/
+.venv/
+
+# 数据库文件
+*.db
+*.db-journal
+*.db-wal
+
+# 上传文件
+apps/api/uploads/
+
+# 日志文件
+apps/api/logs/
+
+# Node
+node_modules/
+
+# Next.js 构建产物
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# 压缩包（项目打包文件，不应上传）
+*.zip
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
