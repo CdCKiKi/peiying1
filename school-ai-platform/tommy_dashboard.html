@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tommy 租務管理系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --border-color: #d8dee6;
+            --text-primary: #1f2937;
+            --text-secondary: #667085;
+            --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
+            --border-radius: 8px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 20px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0 10px;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.8);
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .sidebar-nav a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .sidebar-nav .icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .page-header .actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-default {
+            background-color: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-default:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .btn-small-danger {
+            padding: 4px 12px;
+            font-size: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .btn-small-danger:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stat-card.residential { border-left: 4px solid #3b82f6; }
+        .stat-card.parking { border-left: 4px solid #8b5cf6; }
+        .stat-card.expiring { border-left: 4px solid #f59e0b; }
+        .stat-card.vacant { border-left: 4px solid #64748b; }
+        .stat-card.rent { border-left: 4px solid #22c55e; }
+        .stat-card.pending { border-left: 4px solid #ef4444; }
+
+        /* Section */
+        section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table th {
+            background-color: #f8fafc;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        table tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        /* Status Pill */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pill.active, .status-pill.paid {
+            background-color: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .status-pill.expiring, .status-pill.pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .status-pill.expired, .status-pill.overdue {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        .status-pill.vacant {
+            background-color: rgba(100, 116, 139, 0.1);
+            color: #64748b;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: white;
+            color: var(--text-primary);
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            background-color: var(--success-color);
+        }
+
+        .toast.error {
+            background-color: var(--danger-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Search */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* Archive Stats */
+        .archive-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .archive-stat {
+            background: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .archive-stat .count {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .archive-stat .label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Document Table */
+        .doc-table .category-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .category-badge.租務 { background-color: #dbeafe; color: #1d4ed8; }
+        .category-badge.財務 { background-color: #dcfce7; color: #166534; }
+        .category-badge.人事 { background-color: #fef3c7; color: #92400e; }
+        .category-badge.教育局通告 { background-color: #f3e8ff; color: #6b21a8; }
+        .category-badge.會議 { background-color: #fecaca; color: #991b1b; }
+        .category-badge.其他 { background-color: #f1f5f9; color: #64748b; }
+
+        /* Payment Form */
+        .payment-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 16px;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .sidebar-nav a {
+                padding: 8px 12px;
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Tommy 租務管理</h1>
+            </div>
+            <ul class="sidebar-nav">
+                <li><a href="#" onclick="navigateTo('rental')" class="active">
+                    <span class="icon">🏠</span> 租務提醒
+                </a></li>
+                <li><a href="#" onclick="navigateTo('archive')">
+                    <span class="icon">📁</span> 文件歸檔
+                </a></li>
+                <li><a href="#" onclick="navigateTo('records')">
+                    <span class="icon">📊</span> 收租記錄
+                </a></li>
+                <li><a href="#" onclick="navigateTo('scan')">
+                    <span class="icon">📷</span> 文件掃描
+                </a></li>
+                <li><a href="#" onclick="navigateTo('settings')">
+                    <span class="icon">⚙️</span> 系統設定
+                </a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Content will be dynamically rendered here -->
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="newLeaseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="newLeaseModalTitle">新增租約</h3>
+                <p id="newLeaseModalDesc">新增租賃單位及租戶資訊。</p>
+            </div>
+            <div class="modal-body">
+                <div class="form-row" style="margin-bottom: 16px;">
+                    <button class="btn btn-primary" onclick="setLeaseMode('new')" id="modeNewBtn">新建單位</button>
+                    <button class="btn btn-ghost" onclick="setLeaseMode('renew')" id="modeRenewBtn">為已有單位續租</button>
+                </div>
+                
+                <div id="newUnitFields" class="form-row">
+                    <div class="form-group">
+                        <label>單位編號 *</label>
+                        <input type="text" id="newUnitNumber" placeholder="如 A座8樓B室">
+                    </div>
+                    <div class="form-group">
+                        <label>類型</label>
+                        <select id="newUnitType">
+                            <option value="住宅">住宅</option>
+                            <option value="車位">車位</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="renewUnitFields" class="form-group" style="display: none;">
+                    <label>選擇單位 *</label>
+                    <select id="selectedUnitId">
+                        <option value="">請選擇單位</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>租戶名稱 *</label>
+                    <input type="text" id="newTenant" placeholder="如 陳先生">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>月租 (HK$) *</label>
+                        <input type="number" id="newRent" placeholder="如 18500">
+                    </div>
+                    <div class="form-group">
+                        <label>租約開始 *</label>
+                        <input type="date" id="newLeaseStart">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>租約到期 *</label>
+                    <input type="date" id="newLeaseEnd">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="handleCreateLease()" id="createLeaseBtn">確認新增</button>
+                <button class="btn btn-ghost" onclick="closeModal('newLeaseModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>單位詳情</h3>
+                <p id="detailUnitNumber"></p>
+            </div>
+            <div class="modal-body" id="detailBody">
+                <!-- Detail content -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="generateLease()">生成租約文件</button>
+                <button class="btn btn-default" onclick="sendReminder()">發送繳費提醒</button>
+                <button class="btn btn-ghost" onclick="openRenewModal()">新增租約</button>
+                <button class="btn btn-ghost" onclick="closeModal('detailModal')">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editLeaseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>編輯租約</h3>
+                <p>修改租約信息</p>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editLeaseId">
+                <input type="hidden" id="editUnitId">
+                <div class="form-group">
+                    <label>租戶名稱 *</label>
+                    <input type="text" id="editTenant">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>月租 (HK$) *</label>
+                        <input type="number" id="editRent">
+                    </div>
+                    <div class="form-group">
+                        <label>租約開始 *</label>
+                        <input type="date" id="editLeaseStart">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>租約到期 *</label>
+                    <input type="date" id="editLeaseEnd">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="handleSaveEditLease()">確認保存</button>
+                <button class="btn btn-ghost" onclick="closeModal('editLeaseModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>記錄繳費</h3>
+                <p id="paymentUnitName"></p>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="paymentUnitId">
+                <input type="hidden" id="paymentId">
+                <div class="form-group">
+                    <label>應繳金額 (HK$) *</label>
+                    <input type="number" id="paymentAmount">
+                </div>
+                <div class="form-group">
+                    <label>繳費截止日 *</label>
+                    <input type="date" id="paymentDueDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="handleRecordPayment()">確認新增</button>
+                <button class="btn btn-ghost" onclick="closeModal('paymentModal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Mock Data
+        const mockUnits = [
+            { id: '1', property_name: '俊傑花園', unit_number: 'A座8樓B室', unit_type: '住宅', tenant_name: '陳先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 18500, is_occupied: true, status: 'active', payments: [{ id: 'p1', amount: 18500, due_date: '2026-07-28', paid_date: '2026-07-13', status: 'paid' }], leases: [{ id: 'l1', tenant_name: '陳先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 18500, status: 'active' }] },
+            { id: '2', property_name: '俊傑花園', unit_number: 'A座7樓A室', unit_type: '住宅', tenant_name: '李太太', lease_start: '2024-07-01', lease_end: '2026-09-30', monthly_rent: 16500, is_occupied: true, status: 'expiring', payments: [{ id: 'p2', amount: 16500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l2', tenant_name: '李太太', lease_start: '2024-07-01', lease_end: '2026-09-30', monthly_rent: 16500, status: 'active' }] },
+            { id: '3', property_name: '俊傑花園', unit_number: 'A座6樓C室', unit_type: '住宅', tenant_name: '張先生', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 15000, is_occupied: true, status: 'active', payments: [{ id: 'p3', amount: 15000, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l3', tenant_name: '張先生', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 15000, status: 'active' }] },
+            { id: '4', property_name: '俊傑花園', unit_number: 'B座5樓D室', unit_type: '住宅', tenant_name: '王女士', lease_start: '2024-07-01', lease_end: '2027-12-31', monthly_rent: 16000, is_occupied: true, status: 'active', payments: [{ id: 'p4', amount: 16000, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l4', tenant_name: '王女士', lease_start: '2024-07-01', lease_end: '2027-12-31', monthly_rent: 16000, status: 'active' }] },
+            { id: '5', property_name: '俊傑花園', unit_number: 'B座4樓A室', unit_type: '住宅', tenant_name: '劉先生', lease_start: '2024-07-01', lease_end: '2026-08-15', monthly_rent: 14500, is_occupied: true, status: 'expiring', payments: [{ id: 'p5', amount: 14500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l5', tenant_name: '劉先生', lease_start: '2024-07-01', lease_end: '2026-08-15', monthly_rent: 14500, status: 'active' }] },
+            { id: '6', property_name: '俊傑花園', unit_number: 'B座3樓B室', unit_type: '住宅', tenant_name: null, lease_start: null, lease_end: null, monthly_rent: 14000, is_occupied: false, status: 'vacant', payments: [], leases: [] },
+            { id: '7', property_name: '俊傑花園', unit_number: 'C座2樓C室', unit_type: '住宅', tenant_name: '黃太太', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 15500, is_occupied: true, status: 'active', payments: [{ id: 'p6', amount: 15500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l6', tenant_name: '黃太太', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 15500, status: 'active' }] },
+            { id: '8', property_name: '俊傑花園', unit_number: 'C座1樓D室', unit_type: '住宅', tenant_name: '趙先生', lease_start: '2024-07-01', lease_end: '2026-10-31', monthly_rent: 13500, is_occupied: true, status: 'expiring', payments: [{ id: 'p7', amount: 13500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'l7', tenant_name: '趙先生', lease_start: '2024-07-01', lease_end: '2026-10-31', monthly_rent: 13500, status: 'active' }] },
+            { id: 'p1', property_name: '俊傑花園', unit_number: '車位01', unit_type: '車位', tenant_name: '陳先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 2500, is_occupied: true, status: 'active', payments: [{ id: 'pp1', amount: 2500, due_date: '2026-07-28', paid_date: '2026-07-13', status: 'paid' }], leases: [{ id: 'lp1', tenant_name: '陳先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p2', property_name: '俊傑花園', unit_number: '車位02', unit_type: '車位', tenant_name: '王女士', lease_start: '2024-07-01', lease_end: '2026-08-31', monthly_rent: 2500, is_occupied: true, status: 'expiring', payments: [{ id: 'pp2', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp2', tenant_name: '王女士', lease_start: '2024-07-01', lease_end: '2026-08-31', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p3', property_name: '俊傑花園', unit_number: '車位03', unit_type: '車位', tenant_name: '李太太', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 2500, is_occupied: true, status: 'active', payments: [{ id: 'pp3', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp3', tenant_name: '李太太', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p4', property_name: '俊傑花園', unit_number: '車位04', unit_type: '車位', tenant_name: '張先生', lease_start: '2024-07-01', lease_end: '2027-12-31', monthly_rent: 2500, is_occupied: true, status: 'active', payments: [{ id: 'pp4', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp4', tenant_name: '張先生', lease_start: '2024-07-01', lease_end: '2027-12-31', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p5', property_name: '俊傑花園', unit_number: '車位05', unit_type: '車位', tenant_name: null, lease_start: null, lease_end: null, monthly_rent: 2500, is_occupied: false, status: 'vacant', payments: [], leases: [] },
+            { id: 'p6', property_name: '俊傑花園', unit_number: '車位06', unit_type: '車位', tenant_name: '劉先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 2500, is_occupied: true, status: 'active', payments: [{ id: 'pp5', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp5', tenant_name: '劉先生', lease_start: '2024-07-01', lease_end: '2027-06-30', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p7', property_name: '俊傑花園', unit_number: '車位07', unit_type: '車位', tenant_name: null, lease_start: null, lease_end: null, monthly_rent: 2500, is_occupied: false, status: 'vacant', payments: [], leases: [] },
+            { id: 'p8', property_name: '俊傑花園', unit_number: '車位08', unit_type: '車位', tenant_name: '黃太太', lease_start: '2024-07-01', lease_end: '2026-09-15', monthly_rent: 2500, is_occupied: true, status: 'expiring', payments: [{ id: 'pp6', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp6', tenant_name: '黃太太', lease_start: '2024-07-01', lease_end: '2026-09-15', monthly_rent: 2500, status: 'active' }] },
+            { id: 'p9', property_name: '俊傑花園', unit_number: '車位09', unit_type: '車位', tenant_name: '趙先生', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 2500, is_occupied: true, status: 'active', payments: [{ id: 'pp7', amount: 2500, due_date: '2026-07-28', paid_date: null, status: 'pending' }], leases: [{ id: 'lp7', tenant_name: '趙先生', lease_start: '2024-07-01', lease_end: '2027-03-31', monthly_rent: 2500, status: 'active' }] },
+        ];
+
+        const mockDocuments = [
+            { id: 'd1', original_filename: 'scan_20260715_001.pdf', category: '租務', suggested_name: '2026-07-15_租務_俊傑花園租金通知.pdf', amount: 18500, due_date: '2026-07-31', status: 'needs_review', confidence: 'medium', ocr_text: '俊傑花園租金通知\n單位：A座 8樓 B室\n租戶：陳先生\n月份：2026年7月\n租金：HK$ 18,500\n繳付限期：2026年7月31日' },
+            { id: 'd2', original_filename: 'receipt_property_072.pdf', category: '財務', suggested_name: '2026-07-14_財務_維修費收據.pdf', amount: 2300, due_date: null, status: 'confirmed', confidence: 'high', ocr_text: '維修費收據\n項目：冷氣維修\n金額：HK$ 2,300' },
+            { id: 'd3', original_filename: 'edb_notice_0713.pdf', category: '教育局通告', suggested_name: '2026-07-13_教育局通告_暑期安全指引.pdf', amount: null, due_date: '2026-07-25', status: 'archived', confidence: 'high', ocr_text: '教育局通告\n主旨：暑期安全指引\n敬請各校注意暑期校園安全' },
+            { id: 'd4', original_filename: 'meeting_minutes_0710.pdf', category: '會議', suggested_name: '2026-07-10_會議_行政會議記錄.pdf', amount: null, due_date: null, status: 'confirmed', confidence: 'medium', ocr_text: '行政會議記錄\n日期：2026年7月10日\n出席人員：全體行政人員' },
+            { id: 'd5', original_filename: 'salary_report_07.pdf', category: '人事', suggested_name: '2026-07_人事_薪酬報告.pdf', amount: null, due_date: null, status: 'archived', confidence: 'high', ocr_text: '薪酬報告\n月份：2026年7月\n員工數目：35人' },
+        ];
+
+        let units = JSON.parse(JSON.stringify(mockUnits));
+        let documents = JSON.parse(JSON.stringify(mockDocuments));
+        let currentPage = 'rental';
+        let leaseMode = 'new';
+        let currentDetailUnit = null;
+
+        // Navigation
+        function navigateTo(page) {
+            currentPage = page;
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPage();
+        }
+
+        // Render Page
+        function renderPage() {
+            const main = document.getElementById('mainContent');
+            switch (currentPage) {
+                case 'rental':
+                    main.innerHTML = renderRentalPage();
+                    break;
+                case 'archive':
+                    main.innerHTML = renderArchivePage();
+                    break;
+                case 'records':
+                    main.innerHTML = renderRecordsPage();
+                    break;
+                case 'scan':
+                    main.innerHTML = renderScanPage();
+                    break;
+                case 'settings':
+                    main.innerHTML = renderSettingsPage();
+                    break;
+            }
+        }
+
+        // Rental Page
+        function renderRentalPage() {
+            const residentialUnits = units.filter(u => u.unit_type === '住宅');
+            const parkingUnits = units.filter(u => u.unit_type === '車位');
+            const stats = calculateStats();
+
+            return `
+                <div class="page-header">
+                    <h2>租務提醒</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="openNewLeaseModal()">新增租約</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card residential">
+                        <div class="stat-value">${stats.residential_count}</div>
+                        <div class="stat-label">住宅單位</div>
+                    </div>
+                    <div class="stat-card parking">
+                        <div class="stat-value">${stats.parking_count}</div>
+                        <div class="stat-label">車位單位</div>
+                    </div>
+                    <div class="stat-card expiring">
+                        <div class="stat-value">${stats.expiring_soon}</div>
+                        <div class="stat-label">即將到期</div>
+                    </div>
+                    <div class="stat-card vacant">
+                        <div class="stat-value">${stats.vacant}</div>
+                        <div class="stat-label">空置單位</div>
+                    </div>
+                    <div class="stat-card rent">
+                        <div class="stat-value">HK$ ${stats.total_monthly_rent.toLocaleString()}</div>
+                        <div class="stat-label">總月租收入</div>
+                    </div>
+                    <div class="stat-card pending">
+                        <div class="stat-value">${stats.pending_payments}</div>
+                        <div class="stat-label">待繳費記錄</div>
+                    </div>
+                </div>
+
+                <section>
+                    <h3>住宅 (${residentialUnits.length})</h3>
+                    <div class="overflow-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 18%">單位編號</th>
+                                    <th style="width: 12%">租戶</th>
+                                    <th style="width: 12%">月租</th>
+                                    <th style="width: 12%">租約到期</th>
+                                    <th style="width: 10%">繳費</th>
+                                    <th style="width: 10%">租務狀態</th>
+                                    <th style="width: 26%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${residentialUnits.map(u => renderUnitRow(u)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>車位 (${parkingUnits.length})</h3>
+                    <div class="overflow-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 18%">車位編號</th>
+                                    <th style="width: 12%">租戶</th>
+                                    <th style="width: 12%">月租</th>
+                                    <th style="width: 12%">租約到期</th>
+                                    <th style="width: 10%">繳費</th>
+                                    <th style="width: 10%">租務狀態</th>
+                                    <th style="width: 26%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${parkingUnits.map(u => renderUnitRow(u)).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderUnitRow(unit) {
+            const pendingPayment = unit.payments?.find(p => p.status === 'pending');
+            const hasPaid = unit.payments?.some(p => p.status === 'paid');
+            return `
+                <tr>
+                    <td>${unit.unit_number}</td>
+                    <td>${unit.tenant_name || '-'}</td>
+                    <td>HK$ ${Number(unit.monthly_rent || 0).toLocaleString()}</td>
+                    <td>${unit.lease_end || '-'}</td>
+                    <td>${hasPaid ? '<span class="status-pill paid">已繳</span>' : (pendingPayment ? '<span class="status-pill pending">待繳</span>' : '-')}</td>
+                    <td><span class="status-pill ${unit.status}">${getStatusLabel(unit.status)}</span></td>
+                    <td>
+                        <button class="btn btn-small" onclick="viewDetail('${unit.id}')">查看</button>
+                        ${pendingPayment ? `<button class="btn btn-small" onclick="openPaymentModal('${unit.id}', '${pendingPayment.id}')">收款</button>` : ''}
+                        ${hasPaid ? `<button class="btn btn-small-danger" onclick="undoPayment('${unit.id}', '${unit.payments.find(p => p.status === 'paid').id}')">撤銷</button>` : ''}
+                    </td>
+                </tr>
+            `;
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                active: '已出租',
+                expiring: '即將到期',
+                expired: '已到期',
+                vacant: '空置'
+            };
+            return labels[status] || status;
+        }
+
+        function calculateStats() {
+            const today = new Date();
+            const residential_count = units.filter(u => u.unit_type === '住宅').length;
+            const parking_count = units.filter(u => u.unit_type === '車位').length;
+            const expiring_soon = units.filter(u => {
+                if (!u.lease_end) return false;
+                const endDate = new Date(u.lease_end);
+                const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 90 && u.is_occupied;
+            }).length;
+            const vacant = units.filter(u => u.is_occupied === false).length;
+            const total_monthly_rent = units.filter(u => u.is_occupied).reduce((sum, u) => sum + (u.monthly_rent || 0), 0);
+            const pending_payments = units.reduce((sum, u) => sum + (u.payments?.filter(p => p.status === 'pending').length || 0), 0);
+            return { residential_count, parking_count, expiring_soon, vacant, total_monthly_rent, pending_payments };
+        }
+
+        // Archive Page
+        function renderArchivePage() {
+            const stats = {
+                total: documents.length,
+                needs_review: documents.filter(d => d.status === 'needs_review').length,
+                confirmed: documents.filter(d => d.status === 'confirmed').length,
+                archived: documents.filter(d => d.status === 'archived').length
+            };
+
+            return `
+                <div class="page-header">
+                    <h2>文件歸檔</h2>
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="alert('文件上傳功能需要後端服務支持')">上傳文件</button>
+                    </div>
+                </div>
+
+                <div class="archive-stats">
+                    <div class="archive-stat">
+                        <div class="count">${stats.total}</div>
+                        <div class="label">總文件數</div>
+                    </div>
+                    <div class="archive-stat">
+                        <div class="count" style="color: #f59e0b">${stats.needs_review}</div>
+                        <div class="label">待複核</div>
+                    </div>
+                    <div class="archive-stat">
+                        <div class="count" style="color: #3b82f6">${stats.confirmed}</div>
+                        <div class="label">已確認</div>
+                    </div>
+                    <div class="archive-stat">
+                        <div class="count" style="color: #22c55e">${stats.archived}</div>
+                        <div class="label">已歸檔</div>
+                    </div>
+                </div>
+
+                <section>
+                    <div class="search-bar">
+                        <input type="text" placeholder="搜索文件名..." onkeyup="filterDocuments(this.value)">
+                        <select onchange="filterByStatus(this.value)">
+                            <option value="">全部狀態</option>
+                            <option value="needs_review">待複核</option>
+                            <option value="confirmed">已確認</option>
+                            <option value="archived">已歸檔</option>
+                        </select>
+                    </div>
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%">文件名</th>
+                                <th style="width: 15%">分類</th>
+                                <th style="width: 10%">金額</th>
+                                <th style="width: 12%">到期日</th>
+                                <th style="width: 10%">置信度</th>
+                                <th style="width: 12%">狀態</th>
+                                <th style="width: 16%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentTableBody">
+                            ${documents.map(d => renderDocumentRow(d)).join('')}
+                        </tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        function renderDocumentRow(doc) {
+            return `
+                <tr>
+                    <td>${doc.original_filename}</td>
+                    <td><span class="category-badge ${doc.category}">${doc.category}</span></td>
+                    <td>${doc.amount ? 'HK$ ' + Number(doc.amount).toLocaleString() : '-'}</td>
+                    <td>${doc.due_date || '-'}</td>
+                    <td><span class="status-pill ${doc.confidence === 'high' ? 'active' : doc.confidence === 'medium' ? 'pending' : 'overdue'}">${doc.confidence === 'high' ? '高' : doc.confidence === 'medium' ? '中' : '低'}</span></td>
+                    <td><span class="status-pill ${doc.status === 'needs_review' ? 'pending' : doc.status === 'confirmed' ? 'active' : 'paid'}">${doc.status === 'needs_review' ? '待複核' : doc.status === 'confirmed' ? '已確認' : '已歸檔'}</span></td>
+                    <td>
+                        ${doc.status === 'needs_review' ? `<button class="btn btn-small" onclick="confirmDocument('${doc.id}')">確認</button>` : ''}
+                        ${doc.status === 'confirmed' ? `<button class="btn btn-small" onclick="archiveDocument('${doc.id}')">歸檔</button>` : ''}
+                        ${doc.status !== 'needs_review' ? `<button class="btn btn-small-danger" onclick="undoArchive('${doc.id}')">撤銷</button>` : ''}
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Records Page
+        function renderRecordsPage() {
+            const allPayments = units.flatMap(u => u.payments || []);
+            const paidPayments = allPayments.filter(p => p.status === 'paid');
+            const pendingPayments = allPayments.filter(p => p.status === 'pending');
+
+            return `
+                <div class="page-header">
+                    <h2>收租記錄</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${paidPayments.length}</div>
+                        <div class="stat-label">已收繳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${pendingPayments.length}</div>
+                        <div class="stat-label">待繳費</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">HK$ ${paidPayments.reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString()}</div>
+                        <div class="stat-label">已收金額</div>
+                    </div>
+                </div>
+
+                <section>
+                    <h3>已收繳記錄</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>單位</th>
+                                <th>租戶</th>
+                                <th>金額</th>
+                                <th>繳費日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${paidPayments.map(p => {
+                                const unit = units.find(u => u.id === p.unit_id);
+                                return `
+                                    <tr>
+                                        <td>${unit?.unit_number || '-'}</td>
+                                        <td>${unit?.tenant_name || '-'}</td>
+                                        <td>HK$ ${Number(p.amount).toLocaleString()}</td>
+                                        <td>${p.paid_date || '-'}</td>
+                                        <td><button class="btn btn-small-danger" onclick="undoPayment('${unit?.id}', '${p.id}')">撤銷</button></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            ${paidPayments.length === 0 ? '<tr><td colspan="5" style="text-align: center; color: #667085">暫無已收繳記錄</td></tr>' : ''}
+                        </tbody>
+                    </table>
+                </section>
+
+                <section>
+                    <h3>待繳費記錄</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>單位</th>
+                                <th>租戶</th>
+                                <th>金額</th>
+                                <th>截止日期</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${pendingPayments.map(p => {
+                                const unit = units.find(u => u.id === p.unit_id);
+                                return `
+                                    <tr>
+                                        <td>${unit?.unit_number || '-'}</td>
+                                        <td>${unit?.tenant_name || '-'}</td>
+                                        <td>HK$ ${Number(p.amount).toLocaleString()}</td>
+                                        <td>${p.due_date || '-'}</td>
+                                        <td><button class="btn btn-small" onclick="openPaymentModal('${unit?.id}', '${p.id}')">收款</button></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                            ${pendingPayments.length === 0 ? '<tr><td colspan="5" style="text-align: center; color: #667085">暫無待繳費記錄</td></tr>' : ''}
+                        </tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        // Scan Page
+        function renderScanPage() {
+            return `
+                <div class="page-header">
+                    <h2>文件掃描</h2>
+                </div>
+
+                <section style="text-align: center; padding: 40px;">
+                    <div style="width: 200px; height: 200px; border: 2px dashed #d8dee6; border-radius: 12px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; background-color: #f8fafc;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 8px;">📷</div>
+                            <div style="color: #667085;">點擊或拖放文件</div>
+                        </div>
+                    </div>
+                    <p style="color: #667085; margin-bottom: 20px;">支持 PDF、圖片、Word 文檔</p>
+                    <button class="btn btn-primary" onclick="alert('文件上傳功能需要後端服務支持')">選擇文件</button>
+                </section>
+
+                <section>
+                    <h3>掃描歷史</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>文件名</th>
+                                <th>狀態</th>
+                                <th>掃描時間</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>scan_20260715_001.pdf</td>
+                                <td><span class="status-pill paid">已完成</span></td>
+                                <td>2026-07-15 10:30</td>
+                            </tr>
+                            <tr>
+                                <td>receipt_property_072.pdf</td>
+                                <td><span class="status-pill paid">已完成</span></td>
+                                <td>2026-07-14 14:20</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            `;
+        }
+
+        // Settings Page
+        function renderSettingsPage() {
+            return `
+                <div class="page-header">
+                    <h2>系統設定</h2>
+                </div>
+
+                <section>
+                    <h3>租務設定</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>物業名稱</label>
+                            <input type="text" value="俊傑花園">
+                        </div>
+                        <div class="form-group">
+                            <label>租金截止日</label>
+                            <input type="number" value="28">
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3>通知設定</h3>
+                    <div class="form-group">
+                        <label>租約到期提醒天數</label>
+                        <input type="number" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>繳費提醒天數</label>
+                        <input type="number" value="7">
+                    </div>
+                </section>
+
+                <section>
+                    <h3>使用者</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>用戶名</th>
+                                <th>姓名</th>
+                                <th>角色</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>tommy</td>
+                                <td>Tommy</td>
+                                <td>校務處書記</td>
+                            </tr>
+                            <tr>
+                                <td>admin</td>
+                                <td>Admin</td>
+                                <td>系統管理員</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <button class="btn btn-primary" onclick="showToast('設定已保存', 'success')">保存設定</button>
+            `;
+        }
+
+        // Modal Functions
+        function openNewLeaseModal() {
+            leaseMode = 'new';
+            updateLeaseModeUI();
+            document.getElementById('newLeaseModal').classList.add('open');
+            populateUnitSelect();
+        }
+
+        function setLeaseMode(mode) {
+            leaseMode = mode;
+            updateLeaseModeUI();
+        }
+
+        function updateLeaseModeUI() {
+            const title = document.getElementById('newLeaseModalTitle');
+            const desc = document.getElementById('newLeaseModalDesc');
+            const btn = document.getElementById('createLeaseBtn');
+            const newFields = document.getElementById('newUnitFields');
+            const renewFields = document.getElementById('renewUnitFields');
+            const modeNewBtn = document.getElementById('modeNewBtn');
+            const modeRenewBtn = document.getElementById('modeRenewBtn');
+
+            if (leaseMode === 'new') {
+                title.textContent = '新增租約';
+                desc.textContent = '新增租賃單位及租戶資訊。';
+                btn.textContent = '確認新增';
+                newFields.style.display = 'grid';
+                renewFields.style.display = 'none';
+                modeNewBtn.className = 'btn btn-primary';
+                modeRenewBtn.className = 'btn btn-ghost';
+            } else {
+                title.textContent = '續租';
+                desc.textContent = '為已有單位新增租約，舊租約將自動標記為已到期。';
+                btn.textContent = '確認續租';
+                newFields.style.display = 'none';
+                renewFields.style.display = 'block';
+                modeNewBtn.className = 'btn btn-ghost';
+                modeRenewBtn.className = 'btn btn-primary';
+            }
+        }
+
+        function populateUnitSelect() {
+            const select = document.getElementById('selectedUnitId');
+            select.innerHTML = '<option value="">請選擇單位</option>' +
+                units.map(u => `<option value="${u.id}">${u.unit_number} ${u.tenant_name ? `(當前租戶: ${u.tenant_name})` : '(空置)'}</option>`).join('');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        function viewDetail(unitId) {
+            currentDetailUnit = units.find(u => u.id === unitId);
+            if (!currentDetailUnit) return;
+            
+            document.getElementById('detailUnitNumber').textContent = currentDetailUnit.unit_number;
+            document.getElementById('detailBody').innerHTML = renderDetailContent(currentDetailUnit);
+            document.getElementById('detailModal').classList.add('open');
+        }
+
+        function renderDetailContent(unit) {
+            return `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                        <div><span style="color: #667085;">物業：</span><strong>${unit.property_name}</strong></div>
+                        <div><span style="color: #667085;">類型：</span><strong>${unit.unit_type}</strong></div>
+                        <div><span style="color: #667085;">租戶：</span><strong>${unit.tenant_name || '空置'}</strong></div>
+                        <div><span style="color: #667085;">月租：</span><strong>HK$ ${Number(unit.monthly_rent || 0).toLocaleString()}</strong></div>
+                        <div><span style="color: #667085;">租約開始：</span><strong>${unit.lease_start || '-'}</strong></div>
+                        <div><span style="color: #667085;">租約到期：</span><strong>${unit.lease_end || '-'}</strong></div>
+                    </div>
+
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">租約記錄</h4>
+                    ${unit.leases && unit.leases.length > 0 ? `
+                        <table style="margin-bottom: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>租戶</th>
+                                    <th>月租</th>
+                                    <th>租約期間</th>
+                                    <th>狀態</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${unit.leases.map(l => `
+                                    <tr>
+                                        <td>${l.tenant_name}</td>
+                                        <td>HK$ ${Number(l.monthly_rent).toLocaleString()}</td>
+                                        <td>${l.lease_start} ~ ${l.lease_end}</td>
+                                        <td><span class="status-pill ${l.status === 'active' ? 'active' : 'pending'}">${l.status === 'active' ? '當前租約' : '已到期'}</span></td>
+                                        <td><button class="btn btn-small" onclick="openEditLeaseModal('${unit.id}', '${l.id}')">編輯</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p style="color: #667085; margin-bottom: 20px;">暫無租約記錄</p>'}
+
+                    <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">繳費記錄</h4>
+                    ${unit.payments && unit.payments.length > 0 ? `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>應繳金額</th>
+                                    <th>截止日</th>
+                                    <th>已繳日期</th>
+                                    <th>狀態</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${unit.payments.map(p => `
+                                    <tr>
+                                        <td>HK$ ${Number(p.amount).toLocaleString()}</td>
+                                        <td>${p.due_date}</td>
+                                        <td>${p.paid_date || '-'}</td>
+                                        <td><span class="status-pill ${p.status}">${p.status === 'paid' ? '已繳' : p.status === 'pending' ? '待繳' : '逾期'}</span></td>
+                                        <td>
+                                            ${p.status === 'paid' ? `<button class="btn btn-small-danger" onclick="undoPayment('${unit.id}', '${p.id}')">撤銷</button>` : ''}
+                                            ${p.status === 'pending' ? `<button class="btn btn-small" onclick="openPaymentModal('${unit.id}', '${p.id}')">收款</button>` : ''}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : '<p style="color: #667085;">暫無繳費記錄</p>'}
+                </div>
+            `;
+        }
+
+        function openEditLeaseModal(unitId, leaseId) {
+            const unit = units.find(u => u.id === unitId);
+            const lease = unit?.leases?.find(l => l.id === leaseId);
+            if (!lease) return;
+            
+            document.getElementById('editUnitId').value = unitId;
+            document.getElementById('editLeaseId').value = leaseId;
+            document.getElementById('editTenant').value = lease.tenant_name;
+            document.getElementById('editRent').value = lease.monthly_rent;
+            document.getElementById('editLeaseStart').value = lease.lease_start;
+            document.getElementById('editLeaseEnd').value = lease.lease_end;
+            document.getElementById('editLeaseModal').classList.add('open');
+        }
+
+        function openPaymentModal(unitId, paymentId) {
+            const unit = units.find(u => u.id === unitId);
+            if (!unit) return;
+            
+            document.getElementById('paymentUnitId').value = unitId;
+            document.getElementById('paymentId').value = paymentId;
+            document.getElementById('paymentUnitName').textContent = unit.unit_number;
+            document.getElementById('paymentAmount').value = unit.monthly_rent || '';
+            
+            const today = new Date();
+            const dueDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            document.getElementById('paymentDueDate').value = dueDate.toISOString().split('T')[0];
+            
+            document.getElementById('paymentModal').classList.add('open');
+        }
+
+        function openRenewModal() {
+            closeModal('detailModal');
+            leaseMode = 'renew';
+            updateLeaseModeUI();
+            populateUnitSelect();
+            if (currentDetailUnit) {
+                document.getElementById('selectedUnitId').value = currentDetailUnit.id;
+            }
+            document.getElementById('newLeaseModal').classList.add('open');
+        }
+
+        // Action Functions
+        function handleCreateLease() {
+            const tenant = document.getElementById('newTenant').value;
+            const rent = document.getElementById('newRent').value;
+            const start = document.getElementById('newLeaseStart').value;
+            const end = document.getElementById('newLeaseEnd').value;
+
+            if (!tenant || !rent || !start || !end) {
+                showToast('請填寫所有必填字段', 'error');
+                return;
+            }
+
+            if (leaseMode === 'new') {
+                const unitNumber = document.getElementById('newUnitNumber').value;
+                const unitType = document.getElementById('newUnitType').value;
+                
+                if (!unitNumber) {
+                    showToast('請填寫單位編號', 'error');
+                    return;
+                }
+
+                const newUnit = {
+                    id: 'new_' + Date.now(),
+                    property_name: '俊傑花園',
+                    unit_number: unitNumber,
+                    unit_type: unitType,
+                    tenant_name: tenant,
+                    lease_start: start,
+                    lease_end: end,
+                    monthly_rent: parseFloat(rent),
+                    is_occupied: true,
+                    status: 'active',
+                    payments: [],
+                    leases: [{
+                        id: 'lease_' + Date.now(),
+                        tenant_name: tenant,
+                        lease_start: start,
+                        lease_end: end,
+                        monthly_rent: parseFloat(rent),
+                        status: 'active'
+                    }]
+                };
+                units.push(newUnit);
+                showToast('租約已新增', 'success');
+            } else {
+                const unitId = document.getElementById('selectedUnitId').value;
+                const unit = units.find(u => u.id === unitId);
+                
+                if (!unit) {
+                    showToast('請選擇單位', 'error');
+                    return;
+                }
+
+                if (unit.leases) {
+                    unit.leases.forEach(l => {
+                        if (l.status === 'active') l.status = 'expired';
+                    });
+                }
+
+                const newLease = {
+                    id: 'lease_' + Date.now(),
+                    tenant_name: tenant,
+                    lease_start: start,
+                    lease_end: end,
+                    monthly_rent: parseFloat(rent),
+                    status: 'active'
+                };
+                if (!unit.leases) unit.leases = [];
+                unit.leases.push(newLease);
+
+                unit.tenant_name = tenant;
+                unit.lease_start = start;
+                unit.lease_end = end;
+                unit.monthly_rent = parseFloat(rent);
+                unit.is_occupied = true;
+                unit.status = 'active';
+
+                showToast('租約已續租', 'success');
+            }
+
+            closeModal('newLeaseModal');
+            document.getElementById('newUnitNumber').value = '';
+            document.getElementById('newTenant').value = '';
+            document.getElementById('newRent').value = '';
+            document.getElementById('newLeaseStart').value = '';
+            document.getElementById('newLeaseEnd').value = '';
+            renderPage();
+        }
+
+        function handleSaveEditLease() {
+            const unitId = document.getElementById('editUnitId').value;
+            const leaseId = document.getElementById('editLeaseId').value;
+            const tenant = document.getElementById('editTenant').value;
+            const rent = document.getElementById('editRent').value;
+            const start = document.getElementById('editLeaseStart').value;
+            const end = document.getElementById('editLeaseEnd').value;
+
+            if (!tenant || !rent || !start || !end) {
+                showToast('請填寫所有必填字段', 'error');
+                return;
+            }
+
+            const unit = units.find(u => u.id === unitId);
+            const lease = unit?.leases?.find(l => l.id === leaseId);
+            
+            if (lease) {
+                lease.tenant_name = tenant;
+                lease.monthly_rent = parseFloat(rent);
+                lease.lease_start = start;
+                lease.lease_end = end;
+
+                if (lease.status === 'active') {
+                    unit.tenant_name = tenant;
+                    unit.monthly_rent = parseFloat(rent);
+                    unit.lease_start = start;
+                    unit.lease_end = end;
+                }
+            }
+
+            showToast('租約已更新', 'success');
+            closeModal('editLeaseModal');
+            renderPage();
+            if (currentDetailUnit && currentDetailUnit.id === unitId) {
+                viewDetail(unitId);
+            }
+        }
+
+        function handleRecordPayment() {
+            const unitId = document.getElementById('paymentUnitId').value;
+            const paymentId = document.getElementById('paymentId').value;
+            const amount = document.getElementById('paymentAmount').value;
+            const dueDate = document.getElementById('paymentDueDate').value;
+
+            if (!amount || !dueDate) {
+                showToast('請填寫所有必填字段', 'error');
+                return;
+            }
+
+            const unit = units.find(u => u.id === unitId);
+            
+            if (paymentId) {
+                const payment = unit?.payments?.find(p => p.id === paymentId);
+                if (payment) {
+                    payment.status = 'paid';
+                    payment.paid_date = new Date().toISOString().split('T')[0];
+                }
+            } else {
+                const newPayment = {
+                    id: 'payment_' + Date.now(),
+                    unit_id: unitId,
+                    amount: parseFloat(amount),
+                    due_date: dueDate,
+                    paid_date: new Date().toISOString().split('T')[0],
+                    status: 'paid'
+                };
+                if (!unit.payments) unit.payments = [];
+                unit.payments.push(newPayment);
+            }
+
+            showToast('繳費記錄已新增', 'success');
+            closeModal('paymentModal');
+            renderPage();
+        }
+
+        function undoPayment(unitId, paymentId) {
+            if (!confirm('確定要撤銷此次繳費記錄嗎？')) return;
+
+            const unit = units.find(u => u.id === unitId);
+            const payment = unit?.payments?.find(p => p.id === paymentId);
+            
+            if (payment) {
+                payment.status = 'pending';
+                payment.paid_date = null;
+            }
+
+            showToast('繳費記錄已撤銷', 'success');
+            renderPage();
+            if (currentDetailUnit && currentDetailUnit.id === unitId) {
+                viewDetail(unitId);
+            }
+        }
+
+        function confirmDocument(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (doc) {
+                doc.status = 'confirmed';
+                showToast('文件已確認', 'success');
+                renderPage();
+            }
+        }
+
+        function archiveDocument(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (doc) {
+                doc.status = 'archived';
+                showToast('文件已歸檔', 'success');
+                renderPage();
+            }
+        }
+
+        function undoArchive(docId) {
+            if (!confirm('確定要撤銷歸檔嗎？')) return;
+
+            const doc = documents.find(d => d.id === docId);
+            if (doc) {
+                doc.status = doc.status === 'archived' ? 'confirmed' : 'needs_review';
+                showToast('已撤銷歸檔', 'success');
+                renderPage();
+            }
+        }
+
+        function filterDocuments(keyword) {
+            keyword = keyword.toLowerCase();
+            const tbody = document.getElementById('documentTableBody');
+            tbody.innerHTML = documents
+                .filter(d => d.original_filename.toLowerCase().includes(keyword))
+                .map(d => renderDocumentRow(d)).join('');
+        }
+
+        function filterByStatus(status) {
+            const tbody = document.getElementById('documentTableBody');
+            if (!status) {
+                tbody.innerHTML = documents.map(d => renderDocumentRow(d)).join('');
+            } else {
+                tbody.innerHTML = documents
+                    .filter(d => d.status === status)
+                    .map(d => renderDocumentRow(d)).join('');
+            }
+        }
+
+        function generateLease() {
+            showToast('租約文件已生成', 'success');
+        }
+
+        function sendReminder() {
+            showToast('繳費提醒已發送', 'success');
+        }
+
+        // Toast
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize
+        renderPage();
+    </script>
+</body>
+</html>
